@@ -137,7 +137,7 @@ export default async function CustomerPage({ params, searchParams }: PageProps<"
                     <Link href={`/portfolio/${id}`} className="mt-4 inline-block text-sm text-brand-700 hover:underline">Portfolio öffnen ›</Link>
                   </>
                 ) : (
-                  <p className="text-sm text-muted">Nicht im Portfolio.</p>
+                  <p className="text-sm text-muted">Nicht im Portfolio.{can(actor, "portfolio.edit") && <> <Link href={`/portfolio/${id}`} className="text-brand-700 hover:underline">Aufnehmen ›</Link></>}</p>
                 )}
               </Card>
             )}

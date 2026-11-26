@@ -341,3 +341,21 @@ export async function deleteTransaction(actor: Actor, customerId: string, txId: 
   await db.update(transactions).set({ deletedAt: new Date() }).where(eq(transactions.id, txId));
   await logActivity({ actor, action: "transaction.delete", entityType: "transaction", entityId: txId, customerId, summary: `Transaktion über CHF ${t.amount} storniert: ${reason.trim()}` });
 }
+
+/** Customers with an opened account that are not (or no longer) in the portfolio. */
+export async function listPortfolioCandidates(actor: Actor) {
+  assertCan(actor, "portfolio.edit");
+  return db
+    .select({ id: customers.id, firstName: customers.firstName, lastName: customers.lastName, advisorName: sql<string>`${users.firstName} || ' ' || ${users.lastName}` })
+    .from(customers)
+    .innerJoin(users, eq(users.id, customers.advisorId))
+    .where(
+      and(
+        customerScope(actor),
+        sql`exists (select 1 from ${applications} a where a.customer_id = ${customers.id} and a.outcome_status = 'konto_eroeffnet')`,
+        sql`not exists (select 1 from ${portfolios} p where p.customer_id = ${customers.id} and p.removed_at is null)`,
+      ),
+    )
+    .orderBy(asc(customers.lastName))
+    .limit(100);
+}

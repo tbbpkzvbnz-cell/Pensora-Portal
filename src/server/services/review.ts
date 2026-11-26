@@ -3,7 +3,7 @@ import { and, desc, eq, isNull, sql } from "drizzle-orm";
 import { z } from "zod";
 import { db } from "../db";
 import { applications, documents, responseDocuments, submissions, users } from "../db/schema";
-import { assertCan, NotFoundError, type Actor } from "../authz";
+import { assertCan, type Actor } from "../authz";
 import { logActivity, notify } from "../audit";
 import { getEmailProvider } from "../integrations/email";
 import { readDecrypted } from "../integrations/storage";

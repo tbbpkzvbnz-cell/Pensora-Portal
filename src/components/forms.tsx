@@ -79,9 +79,12 @@ export function ConfirmAction({
     if (open) dialogRef.current?.showModal();
     else dialogRef.current?.close();
   }, [open]);
-  useEffect(() => {
+  // Close the dialog once per successful submit (state adjustment during render, no effect needed).
+  const [handled, setHandled] = useState(state);
+  if (state !== handled) {
+    setHandled(state);
     if (state?.success) setOpen(false);
-  }, [state]);
+  }
   return (
     <>
       <button type="button" className={btn[variant]} onClick={() => setOpen(true)}>{label}</button>

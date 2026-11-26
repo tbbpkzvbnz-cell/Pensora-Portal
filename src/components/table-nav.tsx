@@ -7,7 +7,10 @@ type SP = Record<string, string | string[] | undefined>;
 export function withParams(base: string, sp: SP, patch: Record<string, string | undefined>) {
   const u = new URLSearchParams();
   for (const [k, v] of Object.entries(sp)) if (typeof v === "string" && v !== "") u.set(k, v);
-  for (const [k, v] of Object.entries(patch)) (v === undefined || v === "" ? u.delete(k) : u.set(k, v));
+  for (const [k, v] of Object.entries(patch)) {
+    if (v === undefined || v === "") u.delete(k);
+    else u.set(k, v);
+  }
   const s = u.toString();
   return s ? `${base}?${s}` : base;
 }

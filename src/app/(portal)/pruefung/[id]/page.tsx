@@ -6,16 +6,16 @@ import { can, NotFoundError } from "@/server/authz";
 import { applicationDocuments, applicationHistory, getApplication } from "@/server/services/applications";
 import { listResponses, listSubmissions, MANUAL_REVIEW_STATUSES, transmissionDraft } from "@/server/services/review";
 import { listNotes } from "@/server/services/notes";
-import { Alert, Badge, Card, DefinitionList, Field, Input, PageHeader, Select, Textarea } from "@/components/ui";
-import { ActionForm, ConfirmAction, SubmitButton } from "@/components/forms";
+import { Alert, Badge, Card, DefinitionList, PageHeader } from "@/components/ui";
+import { ConfirmAction } from "@/components/forms";
+import { ReviewStatusForm, TransmitForm } from "./forms";
 import { OutcomeBadge, ReviewBadge } from "@/components/status-badges";
 import { StatusTimeline } from "@/components/status-timeline";
 import { ResponseUpload } from "../../antraege/[id]/response-upload";
 import { formatAhv } from "@/lib/ahv";
 import { formatDate, formatDateTime } from "@/lib/format";
 import { formatPhone } from "@/lib/phone";
-import { REVIEW_STATUS_LABELS } from "@/lib/labels";
-import { regeneratePdfAction, setReviewStatusAction, transmitAction } from "../actions";
+import { regeneratePdfAction } from "../actions";
 
 export const metadata: Metadata = { title: "Prüfung" };
 
@@ -92,40 +92,14 @@ export default async function ReviewDetailPage({ params }: PageProps<"/pruefung/
           </Card>
           {!transmitted && can(actor, "review.change_status") && (
             <Card title="Bearbeitungsstatus">
-              <ActionForm action={setReviewStatusAction} className="space-y-3">
-                {(s) => (
-                  <>
-                    <input type="hidden" name="applicationId" value={id} />
-                    <Field label="Status">
-                      <Select name="status" defaultValue={app.reviewStatus === "neu_eingegangen" ? "in_pruefung" : app.reviewStatus ?? "in_pruefung"}>
-                        {MANUAL_REVIEW_STATUSES.map((st) => <option key={st} value={st}>{REVIEW_STATUS_LABELS[st]}</option>)}
-                      </Select>
-                    </Field>
-                    <Field label="Interne Notiz" hint="Pflicht bei „Unterlagen unvollständig“ und „Rückfrage erforderlich“ – der Berater wird benachrichtigt." error={s?.fieldErrors?.note}>
-                      <Textarea name="note" rows={3} defaultValue={s?.values?.note} />
-                    </Field>
-                    <div className="flex justify-end"><SubmitButton>Status speichern</SubmitButton></div>
-                  </>
-                )}
-              </ActionForm>
+              <ReviewStatusForm applicationId={id} current={app.reviewStatus === "neu_eingegangen" ? "in_pruefung" : app.reviewStatus ?? "in_pruefung"} statuses={MANUAL_REVIEW_STATUSES} />
             </Card>
           )}
           {!transmitted && draft && (
             <Card title="Übermittlung an die Zentralstelle 2. Säule">
               {!draft.emailActive && <div className="mb-3"><Alert tone="warning">E-Mail-Integration nicht aktiv. Der Versand ist erst nach Hinterlegung des SMTP-Zugangs des Pensora-Geschäftspostfachs möglich. Das PDF kann heruntergeladen werden.</Alert></div>}
               {app.reviewStatus !== "bereit_zur_uebermittlung" && <p className="mb-3 text-sm text-muted">Setzen Sie den Status zuerst auf „Bereit zur Übermittlung“.</p>}
-              <ActionForm action={transmitAction} className="space-y-3">
-                {(s) => (
-                  <fieldset disabled={!draft.emailActive || app.reviewStatus !== "bereit_zur_uebermittlung"} className="space-y-3 disabled:opacity-60">
-                    <input type="hidden" name="applicationId" value={id} />
-                    <Field label="Empfänger" error={s?.fieldErrors?.recipient} hint="Standard unter Einstellungen → Zentralstelle"><Input name="recipient" type="email" defaultValue={s?.values?.recipient ?? draft.recipient} required /></Field>
-                    <Field label="Betreff" error={s?.fieldErrors?.subject}><Input name="subject" defaultValue={s?.values?.subject ?? draft.subject} required /></Field>
-                    <Field label="Text" error={s?.fieldErrors?.body}><Textarea name="body" rows={9} defaultValue={s?.values?.body ?? draft.body} required /></Field>
-                    <p className="text-xs text-muted">Anhang: vollständiges Antrags-PDF (Vollmacht inkl. Unterschrift und ID-Kopie).</p>
-                    <div className="flex justify-end"><SubmitButton pendingText="Wird gesendet…">E-Mail senden</SubmitButton></div>
-                  </fieldset>
-                )}
-              </ActionForm>
+              <TransmitForm applicationId={id} draft={draft} enabled={draft.emailActive && app.reviewStatus === "bereit_zur_uebermittlung"} />
             </Card>
           )}
           {transmitted && can(actor, "responses.upload") && (

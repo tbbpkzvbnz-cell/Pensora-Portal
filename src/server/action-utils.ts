@@ -7,7 +7,7 @@ import { IntegrationInactiveError } from "./integrations/sms";
 
 export function formValues(fd: FormData): Record<string, string> {
   const out: Record<string, string> = {};
-  for (const [k, v] of fd.entries()) if (typeof v === "string" && !/password/i.test(k)) out[k] = v;
+  for (const [k, v] of fd.entries()) if (typeof v === "string" && !k.startsWith("$") && !/password/i.test(k)) out[k] = v;
   return out;
 }
 

@@ -6,8 +6,9 @@ import { can, NotFoundError } from "@/server/authz";
 import { applicationDocuments, applicationHistory, getApplication, listCaptureLinks } from "@/server/services/applications";
 import { listResponses } from "@/server/services/review";
 import { smsState } from "@/server/integrations/sms";
-import { Alert, Badge, ButtonLink, Card, DefinitionList, Field, Input, PageHeader, Select, Textarea } from "@/components/ui";
-import { ActionForm, ConfirmAction, SubmitButton } from "@/components/forms";
+import { Alert, Badge, ButtonLink, Card, DefinitionList, PageHeader } from "@/components/ui";
+import { ConfirmAction } from "@/components/forms";
+import { OutcomeForm } from "./outcome-form";
 import { ApplicationStatus, OutcomeBadge } from "@/components/status-badges";
 import { StatusTimeline } from "@/components/status-timeline";
 import { CaptureLinkPanel } from "./capture-panel";
@@ -15,8 +16,8 @@ import { ResponseUpload } from "./response-upload";
 import { formatAhv } from "@/lib/ahv";
 import { formatDate, formatDateTime } from "@/lib/format";
 import { formatPhone } from "@/lib/phone";
-import { DOCUMENT_TYPE_LABELS, OUTCOME_STATUS_LABELS } from "@/lib/labels";
-import { revokeLinkAction, setOutcomeAction, submitManuallyAction } from "../actions";
+import { DOCUMENT_TYPE_LABELS } from "@/lib/labels";
+import { revokeLinkAction, submitManuallyAction } from "../actions";
 
 export const metadata: Metadata = { title: "Antrag" };
 
@@ -96,20 +97,7 @@ export default async function ApplicationPage({ params }: PageProps<"/antraege/[
           </Card>
           {can(actor, "applications.change_outcome") && app.reviewStatus === "uebermittelt" && (
             <Card title="Antragsstatus ändern">
-              <ActionForm action={setOutcomeAction} className="space-y-3">
-                {() => (
-                  <>
-                    <input type="hidden" name="applicationId" value={id} />
-                    <Field label="Neuer Status">
-                      <Select name="status" defaultValue={app.outcomeStatus ?? "warten_auf_antwort"}>
-                        {Object.entries(OUTCOME_STATUS_LABELS).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
-                      </Select>
-                    </Field>
-                    <Field label="Bemerkung (optional)"><Textarea name="note" rows={2} /></Field>
-                    <div className="flex justify-end"><SubmitButton>Status speichern</SubmitButton></div>
-                  </>
-                )}
-              </ActionForm>
+              <OutcomeForm applicationId={id} current={app.outcomeStatus ?? "warten_auf_antwort"} />
             </Card>
           )}
           {can(actor, "responses.upload") && app.reviewStatus === "uebermittelt" && (

@@ -35,6 +35,8 @@ function PhotoStep({ title, hint, value, onChange, optionalExisting }: { title: 
   const [preview, setPreview] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   useEffect(() => {
+    // Object URLs are an external resource that must be revoked, so an effect is the right place.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     if (!value) return setPreview(null);
     const u = URL.createObjectURL(value);
     setPreview(u);
@@ -85,6 +87,8 @@ function SignaturePad({ value, onChange }: { value: Blob | null; onChange: (b: B
   useEffect(() => {
     if (value) {
       const u = URL.createObjectURL(value);
+      // Object URLs are an external resource that must be revoked, so an effect is the right place.
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setPreview(u);
       return () => URL.revokeObjectURL(u);
     }

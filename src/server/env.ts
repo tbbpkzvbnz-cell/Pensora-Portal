@@ -27,6 +27,8 @@ const schema = z.object({
   SMTP_HOST: z.string().optional(),
   SMTP_PORT: z.coerce.number().default(587),
   SMTP_SECURE: z.enum(["true", "false"]).default("false"),
+  /** STARTTLS is required unless explicitly disabled (only for local test mail sinks). */
+  SMTP_REQUIRE_TLS: z.enum(["true", "false"]).default("true"),
   SMTP_USER: z.string().optional(),
   SMTP_PASSWORD: z.string().optional(),
   SMTP_FROM: z.string().optional(),
@@ -38,7 +40,7 @@ const parsed = schema.safeParse(
 if (!parsed.success) {
   throw new Error("Ungültige Konfiguration: " + parsed.error.issues.map((i) => `${i.path.join(".")}: ${i.message}`).join("; "));
 }
-if (parsed.data.NODE_ENV === "production" && parsed.data.SMS_PROVIDER === "dev-log") {
+if (parsed.data.NODE_ENV === "production" && parsed.data.SMS_PROVIDER === "dev-log" && process.env.NEXT_PHASE !== "phase-production-build") {
   throw new Error("SMS_PROVIDER=dev-log ist im Produktionsbetrieb nicht erlaubt.");
 }
 

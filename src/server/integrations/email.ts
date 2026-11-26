@@ -23,7 +23,7 @@ class SmtpEmail implements EmailProvider {
     port: env.SMTP_PORT,
     secure: env.SMTP_SECURE === "true",
     auth: env.SMTP_USER ? { user: env.SMTP_USER, pass: env.SMTP_PASSWORD } : undefined,
-    requireTLS: env.SMTP_SECURE !== "true",
+    requireTLS: env.SMTP_SECURE !== "true" && env.SMTP_REQUIRE_TLS === "true",
   });
   async send(msg: EmailMessage) {
     const info = await this.transport.sendMail({ from: env.SMTP_FROM, ...msg });

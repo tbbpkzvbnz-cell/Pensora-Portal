@@ -22,8 +22,8 @@ export async function listBrokers(actor: Actor) {
     : actor.brokerFirmId
       ? eq(brokerFirms.id, actor.brokerFirmId)
       : sql`false`;
-  const uc = db.$with("uc").as(db.select({ b: users.brokerFirmId, n: count().as("n") }).from(users).where(isNull(users.deletedAt)).groupBy(users.brokerFirmId));
-  const cc = db.$with("cc").as(db.select({ b: customers.brokerFirmId, n: count().as("n") }).from(customers).where(isNull(customers.deletedAt)).groupBy(customers.brokerFirmId));
+  const uc = db.$with("uc").as(db.select({ b: users.brokerFirmId, n: count().as("uc_n") }).from(users).where(isNull(users.deletedAt)).groupBy(users.brokerFirmId));
+  const cc = db.$with("cc").as(db.select({ b: customers.brokerFirmId, n: count().as("cc_n") }).from(customers).where(isNull(customers.deletedAt)).groupBy(customers.brokerFirmId));
   return db
     .with(uc, cc)
     .select({
